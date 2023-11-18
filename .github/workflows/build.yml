@@ -62,8 +62,8 @@ jobs:
         with:
           script: core.setFailed('It seems the build process failed silently. See previous step for more info.')
 
-      - name: Upload Ryujinx.Ava artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: r2modman-${{ matrix.configuration }}-${{ matrix.platform }}
-          path: publish
+          path: dist
