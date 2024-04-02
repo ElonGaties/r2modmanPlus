@@ -1,3 +1,27 @@
+### 3.1.47
+- Significant performance improvements
+- Games added:
+  - Palworld
+  - Voices of the Void
+  - GOG support for Cult of the Lamb
+  - EGS support for 20 Minutes Till Dawn
+- General QoL improvements
+
+_Contributions:_
+- _anttimaki_
+- _Lordmau5_
+- _IngoHHacks_
+
+### 3.1.46
+- Games added:
+  - Sailwind
+  - Meeple Station
+  - Void Crew
+- Bug fixes:
+  - Clicking the version number no longer takes you to a broken link
+  - Pagination takes up less screen space
+- Dependencies can now be uninstalled/disabled without removing the dependent mod
+
 ### 3.1.45
 - Games added:
   - Cities: Skylines II

@@ -5,7 +5,7 @@
                 <div class="no-padding-left card-header-title">
                     <div class="input-group input-group--flex margin-right">
                         <label for="thunderstore-search-filter">Search</label>
-                        <input
+                        <DeferredInput
                             v-model="thunderstoreSearchFilter"
                             id="thunderstore-search-filter"
                             class="input"
@@ -46,7 +46,6 @@
         <OnlineModList
             :local-mod-list="localModList"
             :paged-mod-list="pagedThunderstoreModList"
-            @error="$emit('error', $event)"
         />
         <div class="in-mod-list" v-if="getPaginationSize() > 1">
             <p class="notification margin-right">
@@ -59,15 +58,12 @@
             </p>
         </div>
         <br/>
-        <div class="pagination">
-            <div class="smaller-font">
-                <a v-for="index in getPaginationSize()" :key="`pagination-${index}`"
-                    :class="['pagination-link', {'is-current': index === pageNumber}]"
-                    @click="updatePageNumber(index)">
-                    {{index}}
-                </a>
-            </div>
-        </div>
+        <PaginationButtons
+            :current-page="pageNumber"
+            :page-count="getPaginationSize()"
+            :context-size="3"
+            :on-click="updatePageNumber"
+        />
     </div>
 </template>
 
@@ -82,17 +78,20 @@ import ManifestV2 from '../../model/ManifestV2';
 import ThunderstoreMod from '../../model/ThunderstoreMod';
 import OnlineModListProvider from '../../providers/components/loaders/OnlineModListProvider';
 import ArrayUtils from '../../utils/ArrayUtils';
-import debounce from 'lodash.debounce';
 import SearchUtils from '../../utils/SearchUtils';
+import PaginationButtons from "../navigation/PaginationButtons.vue";
+import { DeferredInput } from "../all";
 
 @Component({
     components: {
+        DeferredInput,
         OnlineModList: OnlineModListProvider.provider,
+        PaginationButtons,
     }
 })
 
 export default class OnlineModView extends Vue {
-    readonly pageSize = 140;
+    readonly pageSize = 40;
     pagedThunderstoreModList: ThunderstoreMod[] = [];
     pageNumber = 1;
     searchableThunderstoreModList: ThunderstoreMod[] = [];
@@ -102,7 +101,7 @@ export default class OnlineModView extends Vue {
     thunderstoreSearchFilter = "";
 
     get localModList(): ManifestV2[] {
-        return this.$store.state.localModList;
+        return this.$store.state.profile.modList;
     }
 
     get thunderstoreModList(): ThunderstoreMod[] {
@@ -130,8 +129,6 @@ export default class OnlineModView extends Vue {
     }
 
     @Watch("thunderstoreSearchFilter")
-    onThunderstoreFilterUpdate = debounce(this.performThunderstoreFilterUpdate, 150);
-
     performThunderstoreFilterUpdate() {
         this.pageNumber = 1;
         this.filterThunderstoreModList();

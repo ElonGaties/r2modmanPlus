@@ -1,32 +1,13 @@
 <template>
     <div>
-
-        <router-view @error="showError" v-if="visible"/>
-
-        <div id='errorModal' :class="['modal', 'z-top', {'is-active':(errorMessage !== '')}]">
-            <div class="modal-background" @click="closeErrorModal()"></div>
-            <div class='modal-content'>
-                <div class='notification is-danger'>
-                    <h3 class='title'>Error</h3>
-                    <h5 class="title is-5">{{errorMessage}}</h5>
-                    <p>{{errorStack}}</p>
-                    <div v-if="errorSolution !== ''">
-                        <br/>
-                        <h5 class="title is-5">Suggestion</h5>
-                        <p>{{errorSolution}}</p>
-                    </div>
-                </div>
-            </div>
-            <button class="modal-close is-large" aria-label="close" @click="closeErrorModal()"></button>
-        </div>
-
+        <router-view v-if="visible"/>
+        <ErrorModal />
     </div>
 </template>
 
 <script lang="ts">
 import Component, { mixins } from 'vue-class-component';
 import 'bulma-steps/dist/js/bulma-steps.min.js';
-import R2Error from './model/errors/R2Error';
 import ManagerSettings from './r2mm/manager/ManagerSettings';
 import ProfileProvider from './providers/ror2/model_implementation/ProfileProvider';
 import ProfileImpl from './r2mm/model_implementation/ProfileImpl';
@@ -65,39 +46,22 @@ import GenericProfileInstaller from './r2mm/installing/profile_installers/Generi
 import ConnectionProviderImpl from './r2mm/connection/ConnectionProviderImpl';
 import ConnectionProvider from './providers/generic/connection/ConnectionProvider';
 import UtilityMixin from './components/mixins/UtilityMixin.vue';
+import ErrorModal from './components/modals/ErrorModal.vue';
 
-@Component
+@Component({
+    components: {
+        ErrorModal,
+    }
+})
 export default class App extends mixins(UtilityMixin) {
-
-    private errorMessage: string = '';
-    private errorStack: string = '';
-    private errorSolution: string = '';
-    private settings: ManagerSettings | null = null;
-
     private visible: boolean = false;
 
-    showError(error: R2Error) {
-        this.errorMessage = error.name;
-        this.errorStack = error.message;
-        this.errorSolution = error.solution;
-        LoggerProvider.instance.Log(LogSeverity.ERROR, `[${error.name}]: ${error.message}`);
-    }
-
-    closeErrorModal() {
-        this.errorMessage = '';
-        this.errorStack = '';
-        this.errorSolution = '';
-    }
-
     async created() {
-        // Use as default game for settings load.
-        GameManager.activeGame = GameManager.unsetGame();
+        // Load settings using the default game before the actual game is selected.
+        const settings: ManagerSettings = await this.$store.dispatch('setActiveGame', GameManager.defaultGame);
 
         this.hookThunderstoreModListRefresh();
-        this.hookProfileModListRefresh();
-
-        const settings = await ManagerSettings.getSingleton(GameManager.activeGame);
-        this.settings = settings;
+        await this.checkCdnConnection();
 
         InstallationRuleApplicator.apply();
         InstallationRules.validate();

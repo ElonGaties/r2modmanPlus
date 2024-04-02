@@ -58,7 +58,7 @@
 				</button>
 			</template>
 		</modal>
-        <modal v-show="showDependencyStrings" :open="showDependencyStrings" @close-modal="showDependencyStrings = false;">
+        <modal v-if="showDependencyStrings" :open="showDependencyStrings" @close-modal="showDependencyStrings = false;">
             <template v-slot:title>
                 <p class='card-header-title'>Dependency string list</p>
             </template>
@@ -128,11 +128,10 @@
 		</modal>
 
         <CategoryFilterModal />
-        <LocalFileImportModal :visible="importingLocalMod" @close-modal="importingLocalMod = false" @error="showError($event)"/>
-        <DownloadModModal @error="showError($event)" />
+        <LocalFileImportModal :visible="importingLocalMod" @close-modal="importingLocalMod = false" />
+        <DownloadModModal />
 
         <router-view name="subview"
-                     @error="showError"
                      v-on:setting-invoked="handleSettingsCallbacks($event)" />
     </div>
 </template>
@@ -140,16 +139,15 @@
 <script lang='ts'>
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { ExpandableCard, Hero, Link, Modal, Progress } from '../components/all';
+import { Hero, Link, Modal, Progress } from '../components/all';
 
 import ThunderstoreMod from '../model/ThunderstoreMod';
 import ThunderstoreCombo from '../model/ThunderstoreCombo';
 import ProfileModList from '../r2mm/mods/ProfileModList';
-import ProfileInstallerProvider from '../providers/ror2/installing/ProfileInstallerProvider';
 import PathResolver from '../r2mm/manager/PathResolver';
 import PreloaderFixer from '../r2mm/manager/PreloaderFixer';
 
-import LoggerProvider, { LogSeverity } from '../providers/ror2/logging/LoggerProvider';
+import { LogSeverity } from '../providers/ror2/logging/LoggerProvider';
 
 import Profile from '../model/Profile';
 import VersionNumber from '../model/VersionNumber';
@@ -183,7 +181,6 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
             DownloadModModal,
 			'hero': Hero,
 			'progress-bar': Progress,
-			'ExpandableCard': ExpandableCard,
 			'link-component': Link,
 			'modal': Modal,
 		}
@@ -211,25 +208,8 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
             return this.$store.state.thunderstoreModList || [];
         }
 
-		get localModList() : ManifestV2[] {
-		    if (this.contextProfile !== null) {
-                GameInstructions.getInstructionsForGame(this.activeGame, this.contextProfile!).then(async instructions => {
-                    this.doorstopTarget = instructions.moddedParameters;
-                    this.vanillaLaunchArgs = instructions.vanillaParameters;
-                });
-                GameRunnerProvider.instance.getGameArguments(this.activeGame, this.contextProfile!).then(target => {
-                    if (target instanceof R2Error) {
-                        this.doorstopTarget = "";
-                    } else {
-                        this.doorstopTarget = target;
-                    }
-                });
-            }
-			return this.$store.state.localModList || [];
-		}
-
-		showError(error: R2Error) {
-			this.$emit("error", error);
+		get localModList(): ManifestV2[] {
+			return this.$store.state.profile.modList;
 		}
 
 		closePreloaderFixModal() {
@@ -239,7 +219,7 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 		async fixPreloader() {
 			const res = await PreloaderFixer.fix(this.activeGame);
 			if (res instanceof R2Error) {
-				this.showError(res);
+				this.$store.commit('error/handleError', res);
 			} else {
 				this.fixingPreloader = true;
 			}
@@ -290,12 +270,8 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                             this.showRor2IncorrectDirectoryModal = true;
                         }
                     } catch (e) {
-                        const err: Error = e as Error;
-                        this.showError(new R2Error(
-                            "Failed to change the game directory",
-                            err.message,
-                            null
-                        ));
+                        const err = R2Error.fromThrownValue(e, 'Failed to change the game directory');
+                        this.$store.commit('error/handleError', err);
                     }
                 }
             });
@@ -318,12 +294,8 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 							throw new Error("The selected executable is not gamelaunchhelper.exe");
 						}
 					} catch (e) {
-						const err: Error = e as Error;
-						this.showError(new R2Error(
-							"Failed to change the game directory",
-							err.message,
-							null
-						));
+						const err = R2Error.fromThrownValue(e, 'Failed to change the game directory');
+						this.$store.commit('error/handleError', err);
 					}
 				}
 			});
@@ -374,12 +346,8 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                             this.showSteamIncorrectDirectoryModal = true;
                         }
                     } catch (e) {
-				        const err: Error = e as Error;
-				        this.showError(new R2Error(
-				            "Failed to change the Steam directory",
-                            err.message,
-                            null
-                        ));
+                        const err = R2Error.fromThrownValue(e, 'Failed to change the Steam directory');
+                        this.$store.commit('error/handleError', err);
                     }
 				}
             });
@@ -392,21 +360,21 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 		async exportProfile() {
 			const exportErr = await ProfileModList.exportModListToFile(this.contextProfile!);
 			if (exportErr instanceof R2Error) {
-				this.showError(exportErr);
+				this.$store.commit('error/handleError', exportErr);
 			}
 		}
 
 		async exportProfileAsCode() {
 			const exportErr = await ProfileModList.exportModListAsCode(this.contextProfile!, (code: string, err: R2Error | null) => {
 				if (err !== null) {
-					this.showError(err);
+					this.$store.commit('error/handleError', err);
 				} else {
 					this.exportCode = code;
 					InteractionProvider.instance.copyToClipboard(code);
 				}
 			});
 			if (exportErr instanceof R2Error) {
-				this.showError(exportErr);
+				this.$store.commit('error/handleError', exportErr);
 			}
 		}
 
@@ -466,6 +434,20 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 		}
 
 		showLaunchParameters() {
+			if (this.contextProfile !== null) {
+				GameInstructions.getInstructionsForGame(this.activeGame, this.contextProfile).then(instructions => {
+					this.vanillaLaunchArgs = instructions.vanillaParameters;
+				});
+
+				GameRunnerProvider.instance.getGameArguments(this.activeGame, this.contextProfile).then(target => {
+					if (target instanceof R2Error) {
+						this.doorstopTarget = "";
+					} else {
+						this.doorstopTarget = target;
+					}
+				});
+			}
+
 			this.launchParametersModel = this.settings.getContext().gameSpecific.launchParameters;
 			this.showLaunchParameterModal = true;
 		}
@@ -498,34 +480,6 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
             }
 		}
 
-        async setAllModsEnabled(enabled: boolean) {
-            for (const mod of this.localModList) {
-                let profileErr: R2Error | void;
-                if (enabled) {
-                    profileErr = await ProfileInstallerProvider.instance.enableMod(mod, this.contextProfile!);
-                } else {
-                    profileErr = await ProfileInstallerProvider.instance.disableMod(mod, this.contextProfile!);
-                }
-                if (profileErr instanceof R2Error) {
-                    this.showError(profileErr);
-                    continue;
-                }
-                const update: ManifestV2[] | R2Error = await ProfileModList.updateMod(mod, this.contextProfile!, async (updatingMod: ManifestV2) => {
-                    if (enabled) {
-                        updatingMod.enable();
-                    } else {
-                        updatingMod.disable();
-                    }
-                });
-                if (update instanceof R2Error) {
-                    this.showError(update);
-                    continue;
-                }
-                await this.$store.dispatch("updateModList", update);
-            }
-            await this.$router.push({name: "manager.installed"});
-        }
-
         changeDataFolder() {
             const fs = FsProvider.instance;
             const dir: string = PathResolver.ROOT;
@@ -548,14 +502,17 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                         await fs.writeFile(path.join(files[0], dataDirectoryOverrideFile), "");
                         InteractionProvider.instance.restartApp();
                     } else {
-                        this.showError(new R2Error("Selected directory is not empty", `Directory is not empty: ${files[0]}. Contains ${filesInDirectory.length} files.`, "Select an empty directory or create a new one."));
-                        return;
+                        this.$store.commit('error/handleError', new R2Error(
+                            "Selected directory is not empty",
+                            `Directory is not empty: ${files[0]}. Contains ${filesInDirectory.length} files.`,
+                            "Select an empty directory or create a new one."
+                        ));
                     }
                 }
             });
         }
 
-        handleSettingsCallbacks(invokedSetting: any) {
+        async handleSettingsCallbacks(invokedSetting: any) {
 		    switch(invokedSetting) {
 		        case "BrowseDataFolder":
 		            this.browseDataFolder();
@@ -608,10 +565,18 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                     this.settings = (() => this.settings)();
                     break;
                 case "EnableAll":
-                    this.setAllModsEnabled(true);
+                    await this.$store.dispatch(
+                        "profile/enableModsOnActiveProfile",
+                        {mods: this.localModList}
+                    );
+                    await this.$router.push({name: "manager.installed"});
                     break;
                 case "DisableAll":
-                    this.setAllModsEnabled(false);
+                    await this.$store.dispatch(
+                        "profile/disableModsFromActiveProfile",
+                        {mods: this.localModList}
+                    );
+                    await this.$router.push({name: "manager.installed"});
                     break;
                 case "UpdateAllMods":
                     this.$store.commit("openUpdateAllModsModal");
@@ -625,18 +590,19 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                 case "CleanCache":
                     CacheUtil.clean();
                     break;
-                case "RefreshedThunderstorePackages":
-                    ProfileModList.getModList(this.contextProfile!).then(value => {
-                        if (!(value instanceof R2Error)) {
-                            this.$store.dispatch("updateModList", value);
-                        }
-                    });
-                    break;
             }
         }
 
-        beforeCreate() {
+        async beforeCreate() {
             this.activeGame = GameManager.activeGame;
+
+            // Used by SearchAndSort, but need to be called here to
+            // ensure the settings are loaded before LocalModList
+            // accesses visibleModList from Vuex store.
+            await this.$store.dispatch('profile/loadOrderingSettings');
+
+            // Used by OnlineModView, called here for consistency.
+            this.$store.commit('modFilters/reset');
         }
 
 		async created() {
@@ -645,30 +611,36 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 			this.launchParametersModel = this.settings.getContext().gameSpecific.launchParameters;
 			const newModList: ManifestV2[] | R2Error = await ProfileModList.getModList(this.contextProfile!);
 			if (!(newModList instanceof R2Error)) {
-				await this.$store.dispatch("updateModList", newModList);
+				await this.$store.dispatch('profile/updateModList', newModList);
 			} else {
-                LoggerProvider.instance.Log(LogSeverity.ACTION_STOPPED, `Failed to retrieve local mod list\n-> ${newModList.message}`);
-                this.$emit('error', newModList);
+				this.$store.commit('error/handleError', {
+					error: newModList,
+					severity: LogSeverity.ACTION_STOPPED,
+					logMessage: `Failed to retrieve local mod list\n-> ${newModList.message}`
+				});
 			}
-			this.$store.commit("modFilters/reset");
 
 			InteractionProvider.instance.hookModInstallProtocol(async data => {
                 const combo: ThunderstoreCombo | R2Error = ThunderstoreCombo.fromProtocol(data, this.thunderstoreModList);
                 if (combo instanceof R2Error) {
-                    this.showError(combo);
-                    LoggerProvider.instance.Log(LogSeverity.ACTION_STOPPED, `${combo.name}\n-> ${combo.message}`);
+                    this.$store.commit('error/handleError', {
+                        error: combo,
+                        severity: LogSeverity.ACTION_STOPPED
+                    });
                     return;
                 }
                 DownloadModModal.downloadSpecific(this.activeGame, this.contextProfile!, combo, this.thunderstoreModList)
                     .then(async value => {
                         const modList = await ProfileModList.getModList(this.contextProfile!);
                         if (!(modList instanceof R2Error)) {
-                            await this.$store.dispatch('updateModList', modList);
+                            await this.$store.dispatch('profile/updateModList', modList);
                         } else {
-                            this.showError(modList);
+                            this.$store.commit('error/handleError', modList);
                         }
                     })
-                    .catch(this.showError);
+                    .catch(
+                        (err: R2Error) => this.$store.commit('error/handleError', err)
+                    );
             });
 
 			this.isManagerUpdateAvailable();

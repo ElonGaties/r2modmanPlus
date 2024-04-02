@@ -26,7 +26,8 @@ import { ProfileApiClient } from '../profiles/ProfilesClient';
 
 export default class ProfileModList {
 
-    public static SUPPORTED_CONFIG_FILE_EXTENSIONS = [".cfg", ".txt", ".json", ".yml", ".yaml"];
+    public static SUPPORTED_CONFIG_FILE_EXTENSIONS = [".cfg", ".txt", ".json", ".yml", ".yaml", ".ini"];
+    public static readonly MAX_EXPORT_AS_CODE_SIZE = 20000000; // 20MB
 
     private static lock = new AsyncLock();
 
@@ -251,7 +252,26 @@ export default class ProfileModList {
         if (exportBuilder instanceof R2Error) {
             return exportBuilder;
         } else {
-            await exportBuilder.createZip(exportPath);
+            try {
+                await exportBuilder.createZip(exportPath);
+            } catch (e) {
+                return R2Error.fromThrownValue(e);
+            }
+
+            const zipStats = await fs.lstat(exportPath);
+            if (zipStats.size > this.MAX_EXPORT_AS_CODE_SIZE) {
+                const zipSize = FileUtils.humanReadableSize(zipStats.size);
+                const maxSize = FileUtils.humanReadableSize(this.MAX_EXPORT_AS_CODE_SIZE);
+                const fileTypes = this.SUPPORTED_CONFIG_FILE_EXTENSIONS.join(', ');
+                const configFolder = path.join(profile.getPathOfProfile(), 'BepInEx', 'config');
+                return new R2Error(
+                    'The profile is too large to be exported as a code',
+                    `Exported profile size is ${zipSize} while the maximum supported size is ${maxSize}.
+                     Exported profile includes ${fileTypes} files and all the contents of ${configFolder}`,
+                    'You can still try exporting the profile as a file from the settings view.'
+                );
+            }
+
             const profileBuffer = '#r2modman\n' + (await fs.base64FromZip(exportPath));
             try {
                 const storageResponse = await ProfileApiClient.createProfile(profileBuffer);
@@ -260,48 +280,6 @@ export default class ProfileModList {
                 callback('', R2Error.fromThrownValue(e, "Failed to export profile"));
             }
         }
-    }
-
-    public static async shiftModEntryUp(mod: ManifestV2, profile: Profile): Promise<ManifestV2[] | R2Error> {
-        let list: ManifestV2[] | R2Error = await this.getModList(profile);
-        if (list instanceof R2Error) {
-            return list;
-        }
-        const index = list.findIndex((stored: ManifestV2) => stored.getName() === mod.getName())
-        if (index === 0) {
-            return list;
-        } else {
-            list = list.filter((stored: ManifestV2) => stored.getName() !== mod.getName());
-            const start = list.slice(0, index - 1);
-            const end = list.slice(index - 1);
-            list = [...start, mod, ...end];
-        }
-        const saveErr = await this.saveModList(profile, list);
-        if (saveErr instanceof R2Error) {
-            return saveErr;
-        }
-        return this.getModList(profile);
-    }
-
-    public static async shiftModEntryDown(mod: ManifestV2, profile: Profile): Promise<ManifestV2[] | R2Error> {
-        let list: ManifestV2[] | R2Error = await this.getModList(profile);
-        if (list instanceof R2Error) {
-            return list;
-        }
-        const index = list.findIndex((stored: ManifestV2) => stored.getName() === mod.getName())
-        if (index === list.length) {
-            return list;
-        } else {
-            list = list.filter((stored: ManifestV2) => stored.getName() !== mod.getName());
-            const start = list.slice(0, index + 1);
-            const end = list.slice(index + 1);
-            list = [...start, mod, ...end];
-        }
-        const saveErr = await this.saveModList(profile, list);
-        if (saveErr instanceof R2Error) {
-            return saveErr;
-        }
-        return this.getModList(profile);
     }
 
     public static getDisabledModCount(modList: ManifestV2[]): number {
