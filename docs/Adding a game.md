@@ -34,7 +34,8 @@
   - **ExeName**
     - An array of different executable names (for all platforms). For `StorePlatform` types such as `OTHER` and `STEAM_DIRECT` then the first found executable is used and called when the game is launched.
   - **DataFolderName**
-    - Only relevant for Mono (C#) Unity games. Only used for the `Preloader Fix` in the manager settings.
+    - Required for Unreal games relying on unreal-shimloader.
+    - Relevant for Mono (C#) Unity games, which use it for the `Preloader Fix` in the manager settings.
   - **TsUrl**
     - The Thunderstore API endpoint for the listing.
   - **ExclusionsUrl**
@@ -54,13 +55,6 @@
     - Other names that can be used to search for a game on the GameSelectionScreen view.
       - EG: RoR2, NASB, TABS, etc.
       - Pattern is lowercase although likely isn't necessary.
-
-### Update SettingsDexieStore
-You'll find a line similar to:
-```ts
-this.version(33).stores(store);
-```
-Bump this by one each time a game is added to GameManager.
 
 ### Creating new installation rules
 - See all files under `/src/r2mm/installing/default_installation_rules/`

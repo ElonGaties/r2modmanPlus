@@ -520,7 +520,7 @@ export default class GameManager {
             "Atomicrops", ["Atomicrops.exe"], "Atomicrops_Data",
             "https://thunderstore.io/c/atomicrops/api/v1/package/", EXCLUSIONS,
             [new StorePlatformMetadata(StorePlatform.STEAM, "757320")], "Atomicrops.jpg",
-            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["ac"]),
 
         new Game("Erenshor", "Erenshor", "Erenshor",
             "Erenshor", ["Erenshor.exe"], "Erenshor_Data",
@@ -532,7 +532,7 @@ export default class GameManager {
             "Last Train Outta' Wormtown", ["Last Train Out Of WormTown.exe"], "Last Train Out Of WormTown_Data",
             "https://thunderstore.io/c/last-train-outta-wormtown/api/v1/package/", EXCLUSIONS,
             [new StorePlatformMetadata(StorePlatform.STEAM, "2318480")], "LastTrainOuttaWormtown.png",
-            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["ltow"]),
 
         new Game("DREDGE", "Dredge", "Dredge",
             "DREDGE", ["DREDGE.exe"], "DREDGE_Data",
@@ -544,31 +544,32 @@ export default class GameManager {
             "Cities Skylines II", ["Cities2.exe"], "CitiesSkylines2_Data",
             "https://thunderstore.io/c/cities-skylines-ii/api/v1/package/", EXCLUSIONS,
             [new StorePlatformMetadata(StorePlatform.STEAM, "949230"), new StorePlatformMetadata(StorePlatform.XBOX_GAME_PASS, "ParadoxInteractive.CitiesSkylinesII-PCEdition")], "CitiesSkylines2.png",
-            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["cs2"]),
 
         new Game("Lethal Company", "LethalCompany", "LethalCompany",
-            "Lethal Company", ["Lethal Company.exe"], "LethalCompany_Data",
+            "Lethal Company", ["Lethal Company.exe"], "Lethal Company_Data",
             "https://thunderstore.io/c/lethal-company/api/v1/package/", EXCLUSIONS,
             [new StorePlatformMetadata(StorePlatform.STEAM, "1966720")], "LethalCompany.png",
-            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["lc"]),
 
         new Game("Meeple Station", "MeepleStation", "MeepleStation",
             "Meeple Station", ["Meeple Station.exe"], "MeepleStation_Data",
             "https://thunderstore.io/c/meeple-station/api/v1/package/", EXCLUSIONS,
             [new StorePlatformMetadata(StorePlatform.STEAM, "900010")], "MeepleStation.png",
-            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["ms"]),
 
         new Game("Void Crew", "VoidCrew", "VoidCrew",
             "Void Crew", ["Void Crew.exe"], "VoidCrew_Data",
             "https://thunderstore.io/c/void-crew/api/v1/package/", EXCLUSIONS,
             [new StorePlatformMetadata(StorePlatform.STEAM, "1063420")], "VoidCrew.png",
-            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["vc"]),
 
         new Game("Sailwind", "Sailwind", "Sailwind",
             "Sailwind", ["Sailwind.exe"], "Sailwind_Data",
             "https://thunderstore.io/c/sailwind/api/v1/package/", EXCLUSIONS,
             [new StorePlatformMetadata(StorePlatform.STEAM, "1764530")], "Sailwind.png",
             GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+
         new Game(
             "Voices of the Void", "VotV", "VotV",
             "", ["VotV.exe"], "VotV",
@@ -590,10 +591,113 @@ export default class GameManager {
             GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
 
             new Game("Content Warning", "ContentWarning", "ContentWarning",
-            "Content Warning", ["Content Warning.exe"], "ContentWarning_Data",
+            "Content Warning", ["Content Warning.exe"], "Content Warning_Data",
             "https://thunderstore.io/c/content-warning/api/v1/package/", EXCLUSIONS,
             [new StorePlatformMetadata(StorePlatform.STEAM, "2881650")], "ContentWarning.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["cw"]),
+
+        new Game("Balatro", "Balatro", "Balatro",
+            "Balatro", ["Balatro.exe"], "Balatro_Data",
+            "https://thunderstore.io/c/balatro/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "2379780")], "Balatro.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.LOVELY, []),
+
+        new Game(
+            "Bopl Battle", "BoplBattle", "BoplBattle",
+            "Bopl Battle", ["BoplBattle.exe"], "BoplBattle_Data",
+            "https://thunderstore.io/c/bopl-battle/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "1686940")], "BoplBattle.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["bb"]),
+
+        new Game("Vertigo 2", "Vertigo2", "Vertigo2",
+            "Vertigo 2", ["vertigo2.exe"], "vertigo2_Data",
+            "https://thunderstore.io/c/vertigo-2/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "843390")], "Vertigo2.png",
             GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+
+        new Game("Against the Storm", "AgainstTheStorm", "AgainstTheStorm",
+            "Against the Storm", ["Against the Storm.exe"], "Against the Storm_Data",
+            "https://thunderstore.io/c/against-the-storm/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "1336490")], "AgainstTheStorm.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["ats"]),
+
+        new Game("Lycans", "Lycans", "Lycans",
+            "Lycans", ["Lycans.exe"], "Lycans_Data",
+            "https://thunderstore.io/c/lycans/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "2596100")], "Lycans.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+
+        new Game("Castle Story", "CastleStory", "CastleStory",
+            "Castle Story", ["Castle Story.exe"], "Castle Story_Data",
+            "https://thunderstore.io/c/castle-story/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM_DIRECT, "227860")], "CastleStory.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["cs"]),
+
+        new Game(
+            "Panicore", "Panicore", "Panicore",
+            "Panicore", ["Panicore.exe"], "Panicore",
+            "https://thunderstore.io/c/panicore/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "2695940")], "Panicore.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.SHIMLOADER, ["panicore"]),
+
+        new Game("Risk of Rain Returns", "RiskofRainReturns", "RiskofRainReturns",
+            "Risk of Rain Returns", ["Risk of Rain Returns.exe"], "",
+            "https://thunderstore.io/c/risk-of-rain-returns/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "1337520")], "RiskOfRainReturns.png",
+            GameSelectionDisplayMode.HIDDEN, GameInstanceType.GAME, PackageLoader.RETURN_OF_MODDING, ["rorr"]),
+
+        new Game("Magicraft", "Magicraft", "Magicraft",
+            "Magicraft", ["Magicraft.exe"], "Magicraft_Data",
+            "https://thunderstore.io/c/magicraft/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "2103140")], "Magicraft.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, []),
+
+        new Game("Another Crab's Treasure", "AnotherCrabsTreasure", "AnotherCrabsTreasure",
+            "AnotherCrabsTreasure", ["AnotherCrabsTreasure.exe"], "AnotherCrabsTreasure_Data",
+            "https://thunderstore.io/c/another-crabs-treasure/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "1887840")], "AnotherCrabsTreasure.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["act"]),
+
+        new Game("Gladio Mori", "GladioMori", "GladioMori",
+            "Gladio Mori Demo", ["Gladio Mori.exe"], "Gladio Mori_Data",
+            "https://thunderstore.io/c/gladio-mori/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "2908480")], "GladioMori.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["gm"]),
+
+        new Game("Slipstream: Rogue Space", "SlipstreamRogueSpace", "SlipstreamRogueSpace",
+            "Slipstream Rogue Space", ["Slipstream_Win.exe"], "Slipstream_Win_Data",
+            "https://thunderstore.io/c/slipstream-rogue-space/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "2765860")], "SlipstreamRogueSpace.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["srs"]),
+
+        new Game("Back to the Dawn", "BacktotheDawn", "BacktotheDawn",
+            "MetalHeadGames", ["Back To The Dawn.exe"], "Back To The Dawn_Data",
+            "https://thunderstore.io/c/back-to-the-dawn/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "1735700")], "BackToTheDawn.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["bttd"]),
+
+        new Game("Below the Stone", "BelowTheStone", "BelowTheStone",
+            "Below The Stone", ["Below The Stone.exe"], "Below The Stone_Data",
+            "https://thunderstore.io/c/below-the-stone/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "1170230")], "BelowTheStone.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["bts"]),
+
+        new Game("Gloomwood", "Gloomwood", "Gloomwood",
+            "Gloomwood", ["Gloomwood.exe"], "Gloomwood_Data",
+            "https://thunderstore.io/c/gloomwood/api/v1/package/", EXCLUSIONS,
+            [new StorePlatformMetadata(StorePlatform.STEAM, "1150760")], "Gloomwood.png",
+            GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["gw"]),
+
+        new Game("Among Us", "AmongUs", "AmongUs",
+            "Among Us", ["Among Us.exe"], "Among Us_Data",
+            "https://thunderstore.io/c/among-us/api/v1/package/", EXCLUSIONS,
+            [
+                new StorePlatformMetadata(StorePlatform.STEAM, "945360"),
+                new StorePlatformMetadata(StorePlatform.EPIC_GAMES_STORE, "among-us"),
+                new StorePlatformMetadata(StorePlatform.XBOX_GAME_PASS, "Innersloth.AmongUs"),
+                new StorePlatformMetadata(StorePlatform.OTHER)
+            ],
+            "AmongUs.png", GameSelectionDisplayMode.VISIBLE, GameInstanceType.GAME, PackageLoader.BEPINEX, ["au"]),
     ];
 
     static get activeGame(): Game {
