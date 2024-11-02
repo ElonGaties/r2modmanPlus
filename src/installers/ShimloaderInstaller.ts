@@ -6,7 +6,7 @@ import FileUtils from "../utils/FileUtils";
 import R2Error from "../model/errors/R2Error";
 import { InstallRuleInstaller } from "./InstallRuleInstaller";
 
-export class ShimloaderInstaller extends PackageInstaller {
+export class ShimloaderInstaller implements PackageInstaller {
     /**
      * Handle installation of unreal-shimloader
      */
@@ -39,7 +39,7 @@ export class ShimloaderInstaller extends PackageInstaller {
 
         for (const targetPath of targets) {
             const absSrc = path.join(packagePath, targetPath[0]);
-            const absDest = path.join(profile.getPathOfProfile(), targetPath[1]);
+            const absDest = profile.joinToProfilePath(targetPath[1]);
 
             await FileUtils.ensureDirectory(path.dirname(absDest));
             await fs.copyFile(absSrc, absDest);
@@ -48,14 +48,14 @@ export class ShimloaderInstaller extends PackageInstaller {
         }
 
         // The config subdir needs to be created for shimloader (it will get cranky if it's not there).
-        const configDir = path.join(profile.getPathOfProfile(), "shimloader", "cfg");
+        const configDir = profile.joinToProfilePath("shimloader", "cfg");
         if (!await fs.exists(configDir)) {
             await fs.mkdirs(configDir);
         }
     }
 }
 
-export class ShimloaderPluginInstaller extends PackageInstaller {
+export class ShimloaderPluginInstaller implements PackageInstaller {
     readonly installer = new InstallRuleInstaller({
         gameName: "none" as any,  // This isn't acutally used for actual installation but needs some value
         rules: [

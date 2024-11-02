@@ -4,7 +4,7 @@
             v-for='(key, index) in pagedModList' :key="`online-${key.getFullName()}-${index}-${settings.getContext().global.expandedCards}`"
             :image="getImageUrl(key)"
             :id="index"
-            :description="key.getVersions()[0].getDescription()">
+            :description="key.getDescription()">
             <template v-slot:title>
                 <span v-if="key.isPinned()">
                     <span class="tag is-info margin-right margin-right--half-width"
@@ -25,12 +25,12 @@
                 </span>
             </template>
             <template v-slot:other-icons>
-                <span class='card-header-icon' v-if="key.getDonationLink()">
+                <span class='card-header-icon' v-if="key.getDonationLink() && !readOnly">
                     <Link :url="key.getDonationLink()" target="external" tag="span">
                         <i class='fas fa-heart' v-tooltip.left="'Donate to the mod author'"></i>
                     </Link>
                 </span>
-                <span class='card-header-icon' v-if="isThunderstoreModInstalled(key)">
+                <span class='card-header-icon' v-if="isThunderstoreModInstalled(key) && !readOnly">
                     <i class='fas fa-check' v-tooltip.left="'Mod already installed'"></i>
                 </span>
             </template>
@@ -38,11 +38,11 @@
                 <p class='card-timestamp'><strong>Last updated:</strong> {{getReadableDate(key.getDateUpdated())}}</p>
                 <p class='card-timestamp'><strong>Categories:</strong> {{getReadableCategories(key)}}</p>
             </template>
-            <a class='card-footer-item' @click='showDownloadModal(key)'>Download</a>
+            <a class='card-footer-item' v-if="!readOnly" @click='showDownloadModal(key)'>Download</a>
             <Link :url="key.getPackageUrl()" :target="'external'" class='card-footer-item'>
                 Website <i class="fas fa-external-link-alt margin-left margin-left--half-width"></i>
             </Link>
-            <template v-if="key.getDonationLink() !== undefined">
+            <template v-if="key.getDonationLink() !== undefined && !readOnly">
                 <DonateButton :mod="key"/>
             </template>
             <div class='card-footer-item non-selectable'>
@@ -82,6 +82,9 @@ export default class OnlineModList extends Vue {
     @Prop()
     pagedModList!: ThunderstoreMod[];
 
+    @Prop({default: false})
+    readOnly!: boolean;
+
     private cardExpanded: boolean = false;
     private funkyMode: boolean = false;
 
@@ -97,34 +100,28 @@ export default class OnlineModList extends Vue {
         return this.$store.state.tsMods.deprecated;
     }
 
-    isModDeprecated(key: any) {
-        const mod: ThunderstoreMod = new ThunderstoreMod().fromReactive(key);
+    isModDeprecated(mod: ThunderstoreMod) {
         return this.deprecationMap.get(mod.getFullName()) || false;
     }
 
-    isThunderstoreModInstalled(vueMod: any) {
-        const mod: ThunderstoreMod = new ThunderstoreMod().fromReactive(vueMod);
+    isThunderstoreModInstalled(mod: ThunderstoreMod) {
         return this.localModList.find((local: ManifestV2) => local.getName() === mod.getFullName()) != undefined;
     }
 
-    showDownloadModal(mod: any) {
-        const modToDownload = new ThunderstoreMod().fromReactive(mod);
-        this.$store.commit("openDownloadModModal", modToDownload);
+    showDownloadModal(mod: ThunderstoreMod) {
+        this.$store.commit("openDownloadModModal", mod);
     }
 
     getReadableDate(date: Date): string {
         return valueToReadableDate(date);
     }
 
-    getReadableCategories(tsMod: ThunderstoreMod) {
-        const mod = new ThunderstoreMod().fromReactive(tsMod);
+    getReadableCategories(mod: ThunderstoreMod) {
         return mod.getCategories().join(", ");
     }
 
-    getImageUrl(tsMod: ThunderstoreMod): string {
-        return CdnProvider.replaceCdnHost(
-            tsMod.getVersions()[0].getIcon()
-        );
+    getImageUrl(mod: ThunderstoreMod): string {
+        return CdnProvider.replaceCdnHost(mod.getIcon());
     }
 
     async created() {

@@ -15,7 +15,7 @@
 			<div class="modal-background" @click="showSteamIncorrectDirectoryModal = false"></div>
 			<div class='modal-content'>
 				<div class='notification is-danger'>
-					<h3 class='title'>Failed to set the Steam directory</h3>
+					<h3 class='title'>Failed to set the Steam folder</h3>
 					<p>The steam executable was not selected.</p>
 					<p>If this error has appeared but the executable is correct, please run as administrator.</p>
 				</div>
@@ -27,7 +27,7 @@
 			<div class="modal-background" @click="showRor2IncorrectDirectoryModal = false"></div>
 			<div class='modal-content'>
 				<div class='notification is-danger'>
-					<h3 class='title'>Failed to set the {{ activeGame.displayName }} directory</h3>
+					<h3 class='title'>Failed to set the {{ activeGame.displayName }} folder</h3>
 					<p>The executable must be either of the following: "{{ activeGame.exeName.join('", "') }}".</p>
 					<p>If this error has appeared but the executable is correct, please run as administrator.</p>
 				</div>
@@ -35,9 +35,9 @@
 			<button class="modal-close is-large" aria-label="close"
 			        @click="showRor2IncorrectDirectoryModal = false"></button>
 		</div>
-		<modal v-show="fixingPreloader" :open="fixingPreloader" @close-modal="closePreloaderFixModal">
-			<template v-slot:title>
-				<p class='card-header-title'>Attempting to fix preloader issues</p>
+		<ModalCard :is-active="fixingPreloader" @close-modal="closePreloaderFixModal" :can-close="true">
+			<template v-slot:header>
+				<h2 class='modal-title'>Attempting to fix preloader issues</h2>
 			</template>
 			<template v-slot:body>
 				<div class='notification is-warning'>
@@ -57,10 +57,10 @@
 					I understand
 				</button>
 			</template>
-		</modal>
-        <modal v-if="showDependencyStrings" :open="showDependencyStrings" @close-modal="showDependencyStrings = false;">
-            <template v-slot:title>
-                <p class='card-header-title'>Dependency string list</p>
+		</ModalCard>
+        <ModalCard :is-active="showDependencyStrings" @close-modal="showDependencyStrings = false;" :can-close="true">
+            <template v-slot:header>
+                <h2 class='modal-title'>Dependency string list</h2>
             </template>
             <template v-slot:body>
                 <ul>
@@ -75,10 +75,10 @@
                     Close
                 </button>
             </template>
-        </modal>
-		<modal v-show="showLaunchParameterModal === true" :open="showLaunchParameterModal" @close-modal="() => {showLaunchParameterModal = false;}">
-			<template v-slot:title>
-				<p class='card-header-title'>Set custom launch parameters</p>
+        </ModalCard>
+		<ModalCard :is-active="showLaunchParameterModal" @close-modal="() => {showLaunchParameterModal = false;}" :can-close="true">
+			<template v-slot:header>
+				<h2 class='modal-title'>Set custom launch parameters</h2>
 			</template>
 			<template v-slot:body>
 				<p>Some parameters are provided by default:</p>
@@ -110,10 +110,10 @@
 					Update launch parameters
 				</button>
 			</template>
-		</modal>
-		<modal v-show="exportCode !== ''" :open="exportCode !== ''" @close-modal="() => {exportCode = '';}">
-			<template v-slot:title>
-				<p class='card-header-title'>Profile exported</p>
+		</ModalCard>
+		<ModalCard :is-active="exportCode !== ''" @close-modal="() => {exportCode = '';}" :can-close="true">
+			<template v-slot:header>
+				<h2 class='modal-title'>Profile exported</h2>
 			</template>
 			<template v-slot:body>
 				<p>Your code: <strong>{{exportCode}}</strong> has been copied to your clipboard. Just give it to a
@@ -125,7 +125,7 @@
 					Done
 				</button>
 			</template>
-		</modal>
+		</ModalCard>
 
         <CategoryFilterModal />
         <LocalFileImportModal :visible="importingLocalMod" @close-modal="importingLocalMod = false" />
@@ -141,7 +141,6 @@ import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Hero, Link, Modal, Progress } from '../components/all';
 
-import ThunderstoreMod from '../model/ThunderstoreMod';
 import ThunderstoreCombo from '../model/ThunderstoreCombo';
 import ProfileModList from '../r2mm/mods/ProfileModList';
 import PathResolver from '../r2mm/manager/PathResolver';
@@ -157,6 +156,7 @@ import ManifestV2 from '../model/ManifestV2';
 import ManagerSettings from '../r2mm/manager/ManagerSettings';
 import ThemeManager from '../r2mm/manager/ThemeManager';
 import ManagerInformation from '../_managerinf/ManagerInformation';
+import { DataFolderProvider } from '../providers/ror2/system/DataFolderProvider';
 import InteractionProvider from '../providers/ror2/system/InteractionProvider';
 
 import { homedir } from 'os';
@@ -172,9 +172,11 @@ import LocalFileImportModal from '../components/importing/LocalFileImportModal.v
 import { PackageLoader } from '../model/installing/PackageLoader';
 import GameInstructions from '../r2mm/launching/instructions/GameInstructions';
 import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
+import ModalCard from '../components/ModalCard.vue';
 
 @Component({
 		components: {
+            ModalCard,
             LocalFileImportModal,
             CategoryFilterModal,
             DownloadModModal,
@@ -210,10 +212,6 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
         get profile(): Profile {
             return this.$store.getters['profile/activeProfile'];
         };
-
-		get thunderstoreModList(): ThunderstoreMod[] {
-            return this.$store.state.tsMods.mods;
-        }
 
 		get localModList(): ManifestV2[] {
 			return this.$store.state.profile.modList;
@@ -277,7 +275,7 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                             this.showRor2IncorrectDirectoryModal = true;
                         }
                     } catch (e) {
-                        const err = R2Error.fromThrownValue(e, 'Failed to change the game directory');
+                        const err = R2Error.fromThrownValue(e, 'Failed to change the game folder');
                         this.$store.commit('error/handleError', err);
                     }
                 }
@@ -301,7 +299,7 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 							throw new Error("The selected executable is not gamelaunchhelper.exe");
 						}
 					} catch (e) {
-						const err = R2Error.fromThrownValue(e, 'Failed to change the game directory');
+						const err = R2Error.fromThrownValue(e, 'Failed to change the game folder');
 						this.$store.commit('error/handleError', err);
 					}
 				}
@@ -353,7 +351,7 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                             this.showSteamIncorrectDirectoryModal = true;
                         }
                     } catch (e) {
-                        const err = R2Error.fromThrownValue(e, 'Failed to change the Steam directory');
+                        const err = R2Error.fromThrownValue(e, 'Failed to change the Steam folder');
                         this.$store.commit('error/handleError', err);
                     }
 				}
@@ -373,7 +371,7 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 				this.$store.commit('error/handleError', err);
 				return;
 			}
-			const exportErr = await ProfileModList.exportModListToFile(this.profile);
+			const exportErr = await ProfileModList.exportModListToFile(this.profile.asImmutableProfile());
 			if (exportErr instanceof R2Error) {
 				this.$store.commit('error/handleError', exportErr);
 			}
@@ -388,7 +386,7 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 				this.$store.commit('error/handleError', err);
 				return;
 			}
-			const exportErr = await ProfileModList.exportModListAsCode(this.profile, (code: string, err: R2Error | null) => {
+			const exportErr = await ProfileModList.exportModListAsCode(this.profile.asImmutableProfile(), (code: string, err: R2Error | null) => {
 				if (err !== null) {
 					this.$store.commit('error/handleError', err);
 				} else {
@@ -406,7 +404,7 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 		}
 
         browseProfileFolder() {
-            LinkProvider.instance.openLink('file://' + this.profile.getPathOfProfile());
+            LinkProvider.instance.openLink('file://' + this.profile.getProfilePath());
 		}
 
 		toggleCardExpanded(expanded: boolean) {
@@ -487,13 +485,13 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
             let logOutputPath = "";
             switch (this.activeGame.packageLoader) {
                 case PackageLoader.BEPINEX:
-                    logOutputPath = path.join(this.profile.getPathOfProfile(), "BepInEx", "LogOutput.log");
+                    logOutputPath = path.join(this.profile.getProfilePath(), "BepInEx", "LogOutput.log");
                     break;
                 case PackageLoader.MELON_LOADER:
-                    logOutputPath = path.join(this.profile.getPathOfProfile(), "MelonLoader", "Latest.log");
+                    logOutputPath = path.join(this.profile.getProfilePath(), "MelonLoader", "Latest.log");
                     break;
 				case PackageLoader.RETURN_OF_MODDING:
-                    logOutputPath = path.join(this.profile.getPathOfProfile(), "ReturnOfModding", "LogOutput.log");
+                    logOutputPath = path.join(this.profile.getProfilePath(), "ReturnOfModding", "LogOutput.log");
                     break;
             }
             const text = (await fs.readFile(logOutputPath)).toString();
@@ -504,41 +502,22 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
             }
 		}
 
-        changeDataFolder() {
-            const fs = FsProvider.instance;
-            const dir: string = PathResolver.ROOT;
-            InteractionProvider.instance.selectFolder({
-                title: `Select a new folder to store ${ManagerInformation.APP_NAME} data`,
-                defaultPath: dir,
-                buttonLabel: 'Select Data Folder'
-            }).then(async files => {
-                if (files.length === 1) {
-                    const dataDirectoryOverrideFile = ".ddir.mm";
-                    const filesInDirectory = await fs.readdir(files[0]);
+        async changeDataFolder() {
+            try {
+                const folder = await DataFolderProvider.instance.showSelectionDialog();
 
-                    const hasOverrideFile = filesInDirectory.find(value => value.toLowerCase() === dataDirectoryOverrideFile) != undefined;
-                    const directoryHasContents = filesInDirectory.length > 0;
-                    const isDefaultDataDirectory = files[0] === PathResolver.APPDATA_DIR;
-
-                    if (hasOverrideFile || !directoryHasContents || isDefaultDataDirectory) {
-                        // Write dataDirectoryOverrideFile to allow re-selection of directory if changed at a later point.
-                        await fs.writeFile(path.join(files[0], dataDirectoryOverrideFile), "");
-                        await this.settings.setDataDirectory(files[0]);
-                        InteractionProvider.instance.restartApp();
-                    } else {
-                        this.$store.commit('error/handleError', new R2Error(
-                            "Selected directory is not empty",
-                            `Directory is not empty: ${files[0]}. Contains ${filesInDirectory.length} files.`,
-                            "Select an empty directory or create a new one."
-                        ));
-                    }
+                if (folder === null) {
+                    return;
                 }
-            }).catch((err) => {
-                this.$store.commit(
-                    "error/handleError",
-                    R2Error.fromThrownValue(err, "Failed to change Data Folder")
-                );
-            });
+
+                await DataFolderProvider.instance.throwForInvalidFolder(folder);
+                await DataFolderProvider.instance.writeOverrideFile(folder);
+                await this.settings.setDataDirectory(folder);
+                InteractionProvider.instance.restartApp();
+            } catch(err) {
+                this.$store.commit("error/handleError", R2Error.fromThrownValue(err));
+                return
+            }
         }
 
         async handleSettingsCallbacks(invokedSetting: any) {
@@ -613,7 +592,7 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                     this.showDependencyStrings = true;
                     break;
                 case "ChangeDataFolder":
-                    this.changeDataFolder();
+                    await this.changeDataFolder();
                     break;
                 case "CleanCache":
                     CacheUtil.clean();
@@ -633,9 +612,11 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
 
 		async created() {
 			this.launchParametersModel = this.settings.getContext().gameSpecific.launchParameters;
+			const ignoreCache = this.settings.getContext().global.ignoreCache;
 
-			InteractionProvider.instance.hookModInstallProtocol(async data => {
-                const combo: ThunderstoreCombo | R2Error = ThunderstoreCombo.fromProtocol(data, this.thunderstoreModList);
+            InteractionProvider.instance.hookModInstallProtocol(async (protocolUrl) => {
+                const game = this.$store.state.activeGame;
+                const combo: ThunderstoreCombo | R2Error = await ThunderstoreCombo.fromProtocol(protocolUrl, game);
                 if (combo instanceof R2Error) {
                     this.$store.commit('error/handleError', {
                         error: combo,
@@ -643,9 +624,9 @@ import CategoryFilterModal from '../components/modals/CategoryFilterModal.vue';
                     });
                     return;
                 }
-                DownloadModModal.downloadSpecific(this.activeGame, this.profile, combo, this.thunderstoreModList)
+                DownloadModModal.downloadSpecific(this.profile, combo, ignoreCache)
                     .then(async value => {
-                        const modList = await ProfileModList.getModList(this.profile);
+                        const modList = await ProfileModList.getModList(this.profile.asImmutableProfile());
                         if (!(modList instanceof R2Error)) {
                             await this.$store.dispatch('profile/updateModList', modList);
                         } else {

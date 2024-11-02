@@ -2,7 +2,7 @@ import { InstallArgs, PackageInstaller } from "./PackageInstaller";
 import path from "path";
 import FsProvider from "../providers/generic/file/FsProvider";
 
-export class GodotMLInstaller extends PackageInstaller {
+export class GodotMLInstaller implements PackageInstaller {
     /**
      * Handles installation of GodotML
      */
@@ -10,7 +10,7 @@ export class GodotMLInstaller extends PackageInstaller {
         const { packagePath, profile } = args;
 
         const copyFrom = path.join(packagePath, "addons", "mod_loader");
-        const copyTo = path.join(profile.getPathOfProfile(), "addons", "mod_loader");
+        const copyTo = profile.joinToProfilePath("addons", "mod_loader");
         const fs = FsProvider.instance;
 
         if (await fs.exists(copyFrom)) {

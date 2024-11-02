@@ -2,12 +2,13 @@ import ProviderUtils from '../../generic/ProviderUtils';
 import ThunderstoreVersion from '../../../model/ThunderstoreVersion';
 import ThunderstoreMod from '../../../model/ThunderstoreMod';
 import ThunderstoreCombo from '../../../model/ThunderstoreCombo';
-import ManifestV2 from '../../../model/ManifestV2';
 import R2Error from '../../../model/errors/R2Error';
-import ExportMod from '../../../model/exports/ExportMod';
-import ManagerSettings from '../../../r2mm/manager/ManagerSettings';
-import Game from '../../../model/game/Game';
-import Profile from '../../../model/Profile';
+import { ImmutableProfile } from '../../../model/Profile';
+
+export enum DependencySetBuilderMode {
+    USE_EXACT_VERSION = 0,
+    USE_LATEST_VERSION = 1
+};
 
 export default abstract class ThunderstoreDownloaderProvider {
 
@@ -28,61 +29,50 @@ export default abstract class ThunderstoreDownloaderProvider {
      * This method is recursive to allow dependency building from nested dependencies.
      *
      * @param mod       The current mod to download.
-     * @param allMods   An array of all mods available from the Thunderstore API.
-     * @param builder   An array of resolved dependencies.
-     * @return          ThunderstoreCombo array of the final result of the builder.
+     * @param builder   An array of resolved dependencies. This is mutated in place!
+     * @param mode      Whether to use the exact version in {@param mod} or the latest available version.
      */
-    public abstract buildDependencySet(mod: ThunderstoreVersion, allMods: ThunderstoreMod[], builder: ThunderstoreCombo[]): ThunderstoreCombo[];
-
-    /**
-     * Resolve all downloadable dependencies of a ThunderstoreVersion fetching the latest version of the dependency.
-     * This method is recursive to allow dependency building from nested dependencies.
-     *
-     * @param mod       The current mod to download.
-     * @param allMods   An array of all mods available from the Thunderstore API.
-     * @param builder   An array of resolved dependencies.
-     * @return          ThunderstoreCombo array of the final result of the builder.
-     */
-    public abstract buildDependencySetUsingLatest(mod: ThunderstoreVersion, allMods: ThunderstoreMod[], builder: ThunderstoreCombo[]): ThunderstoreCombo[];
+    public abstract buildDependencySet(mod: ThunderstoreVersion, builder: ThunderstoreCombo[], mode: DependencySetBuilderMode): Promise<void>;
 
     /**
      * A top-level method to download the latest version of all mods passed in, including their dependencies.
      *
-     * @param game              Currently selected game
      * @param modsWithUpdate    An array of ThunderstoreCombo objects to be updated.
-     * @param allMods           An array of all mods available from the Thunderstore API.
+     * @param ignoreCache       Download mod even if it already exists in the cache.
      * @param callback          Callback to show the current state of the downloads.
      * @param completedCallback Callback to perform final actions against. Only called if {@param callback} has not returned a failed status.
      */
-    public abstract downloadLatestOfAll(game: Game, modsWithUpdate: ThunderstoreCombo[], allMods: ThunderstoreMod[],
+    public abstract downloadLatestOfAll(modsWithUpdate: ThunderstoreCombo[], ignoreCache: boolean,
                                callback: (progress: number, modName: string, status: number, err: R2Error | null) => void,
                                completedCallback: (modList: ThunderstoreCombo[]) => void): void;
 
     /**
      * A top-level method to download the latest version of a mod including its dependencies.
      *
-     * @param game              Currently selected game
+     * @param profile           The profile the mod is downloaded for (needed to prevent dependencies from updating existing mods).
      * @param mod               The mod to be downloaded.
      * @param modVersion        The version of the mod to download.
-     * @param allMods           An array of all mods available from the Thunderstore API.
+     * @param ignoreCache       Download mod even if it already exists in the cache.
      * @param callback          Callback to show the current state of the downloads.
      * @param completedCallback Callback to perform final actions against. Only called if {@param callback} has not returned a failed status.
      */
-    public abstract download(game: Game, profile: Profile, mod: ThunderstoreMod, modVersion: ThunderstoreVersion, allMods: ThunderstoreMod[],
+    public abstract download(profile: ImmutableProfile, mod: ThunderstoreMod, modVersion: ThunderstoreVersion,
+                    ignoreCache: boolean,
                     callback: (progress: number, modName: string, status: number, err: R2Error | null) => void,
                     completedCallback: (modList: ThunderstoreCombo[]) => void): void;
 
     /**
      * A top-level method to download exact versions of exported mods.
      *
-     * @param game              Currently selected game
-     * @param modList           An array of {@class ExportMod} mods to download.
-     * @param callback          See {@method download}.
-     * @param completedCallback See {@method download}
+     * @param modList               An array of {@class ThunderstoreCombo} mods to download.
+     * @param ignoreCache           Download mod even if it already exists in the cache.
+     * @param totalProgressCallback Callback to show the combined state of all the downloads.
      */
-    public abstract downloadImportedMods(game: Game, modList: ExportMod[],
-                                callback: (progress: number, modName: string, status: number, err: R2Error | null) => void,
-                                completedCallback: (mods: ThunderstoreCombo[]) => void): void;
+    public abstract downloadImportedMods(
+        modList: ThunderstoreCombo[],
+        ignoreCache: boolean,
+        totalProgressCallback: (progress: number) => void,
+    ): Promise<void>;
 
     /**
      * Generate the current progress across all downloads.
@@ -97,28 +87,27 @@ export default abstract class ThunderstoreDownloaderProvider {
      * Iterate the {@class ThunderstoreCombo} array to perform the download for each mod.
      * Progress to the next one recursively once the callback received has been successful.
      *
-     * @param settings  Instance of ManagerSettings.
-     * @param entries   IterableIterator of entries for {@class ThunderstoreCombo} mods to download.
-     * @param callback  See {@method download}
+     * @param entries      IterableIterator of entries for {@class ThunderstoreCombo} mods to download.
+     * @param ignoreCache  Should mod be downloaded even if it already exists in the cache?
+     * @param callback     See {@method download}
      */
-    public abstract queueDownloadDependencies(settings: ManagerSettings, entries: IterableIterator<[number, ThunderstoreCombo]>, callback: (progress: number, modName: string, status: number, err: R2Error | null) => void): void
+    public abstract queueDownloadDependencies(entries: IterableIterator<[number, ThunderstoreCombo]>, ignoreCache: boolean, callback: (progress: number, modName: string, status: number, err: R2Error | null) => void): void
 
     /**
      * Generate the total count of mods to be downloaded. Cached mods are not included in this count unless download cache is disabled.
      *
-     * @param settings  Instance of ManagerSettings.
      * @param list      List of mods generated by a dependency building method including the primary mod to be downloaded.
      */
-    public abstract calculateInitialDownloadSize(settings: ManagerSettings, list: ThunderstoreCombo[]): number;
+    public abstract calculateInitialDownloadSize(list: ThunderstoreCombo[]): number;
 
     /**
      * Perform the download of the given {@class ThunderstoreCombo}.
      *
-     * @param combo     The current mod to download.
-     * @param settings  Instance of ManagerSettings.
-     * @param callback  See {@method download}
+     * @param combo        The current mod to download.
+     * @param ignoreCache  Should mod be downloaded even if it already exists in the cache?
+     * @param callback     See {@method download}
      */
-    public abstract downloadAndSave(combo: ThunderstoreCombo, settings: ManagerSettings, callback: (progress: number, status: number, err: R2Error | null) => void): void;
+    public abstract downloadAndSave(combo: ThunderstoreCombo, ignoreCache: boolean, callback: (progress: number, status: number, err: R2Error | null) => void): void;
 
     /**
      * Save the download buffer to a zip file in the cache.

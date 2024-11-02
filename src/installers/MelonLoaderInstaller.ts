@@ -4,7 +4,7 @@ import path from "path";
 
 const basePackageFiles = ["manifest.json", "readme.md", "icon.png"];
 
-export class MelonLoaderInstaller extends PackageInstaller {
+export class MelonLoaderInstaller implements PackageInstaller {
     /**
      * Handles installation of MelonLoader
      */
@@ -14,9 +14,9 @@ export class MelonLoaderInstaller extends PackageInstaller {
         for (const item of (await FsProvider.instance.readdir(packagePath))) {
             if (!basePackageFiles.includes(item.toLowerCase())) {
                 if ((await FsProvider.instance.stat(path.join(packagePath, item))).isFile()) {
-                    await FsProvider.instance.copyFile(path.join(packagePath, item), path.join(profile.getPathOfProfile(), item));
+                    await FsProvider.instance.copyFile(path.join(packagePath, item), profile.joinToProfilePath(item));
                 } else {
-                    await FsProvider.instance.copyFolder(path.join(packagePath, item), path.join(profile.getPathOfProfile(), item));
+                    await FsProvider.instance.copyFolder(path.join(packagePath, item), profile.joinToProfilePath(item));
                 }
             }
         }

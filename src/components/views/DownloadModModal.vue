@@ -15,88 +15,76 @@
             </div>
             <button class="modal-close is-large" aria-label="close" @click="downloadingMod = false;"></button>
         </div>
-        <div id="downloadModal" :class="['modal', {'is-active': isOpen}]" v-if="thunderstoreMod !== null">
-            <div class="modal-background" @click="closeModal()"></div>
-            <div class="modal-content">
-                <div class='card'>
-                    <header class="card-header">
-                        <p class='card-header-title' v-if="thunderstoreMod !== null">Select a version of
-                            {{thunderstoreMod.getName()}} to download
-                        </p>
-                    </header>
-                    <div class='card-content'>
-                        <p>It's recommended to select the latest version of all mods.</p>
-                        <p>Using outdated versions may cause problems.</p>
-                        <br/>
-                        <div class="columns is-vcentered">
-                            <template v-if="currentVersion !== null">
-                                <div class="column is-narrow">
-                                    <select class="select" disabled="true">
-                                        <option selected>
-                                            {{currentVersion}}
-                                        </option>
-                                    </select>
-                                </div>
-                                <div class="column is-narrow">
-                                    <span class="margin-right margin-right--half-width"><span class="margin-right margin-right--half-width"/> <i class='fas fa-long-arrow-alt-right'></i></span>
-                                </div>
-                            </template>
-                            <div class="column is-narrow">
-                                <select class='select' v-model='selectedVersion'>
-                                    <option v-for='(value, index) in versionNumbers' :key='index' v-bind:value='value'>
-                                        {{value}}
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="column is-narrow">
-                                <span class="tag is-dark" v-if='selectedVersion === null'>
-                                    You need to select a version
-                                </span>
-                                <span class="tag is-success" v-else-if='recommendedVersion === selectedVersion'>
-                                    {{selectedVersion}} is the recommended version
-                                </span>
-                                <span class="tag is-success" v-else-if='versionNumbers[0] === selectedVersion'>
-                                    {{selectedVersion}} is the latest version
-                                </span>
-                                <span class="tag is-danger" v-else-if='versionNumbers[0] !== selectedVersion'>
-                                    {{selectedVersion}} is an outdated version
-                                </span>
-                            </div>
+        <ModalCard :is-active="isOpen" :can-close="true" v-if="thunderstoreMod !== null" @close-modal="closeModal()">
+            <template v-slot:header>
+                <h2 class='modal-title' v-if="thunderstoreMod !== null">
+                    Select a version of {{thunderstoreMod.getName()}} to download
+                </h2>
+            </template>
+            <template v-slot:body>
+                <p>It's recommended to select the latest version of all mods.</p>
+                <p>Using outdated versions may cause problems.</p>
+                <br/>
+                <div class="columns is-vcentered">
+                    <template v-if="currentVersion !== null">
+                        <div class="column is-narrow">
+                            <select class="select" disabled="true">
+                                <option selected>
+                                    {{currentVersion}}
+                                </option>
+                            </select>
                         </div>
+                        <div class="column is-narrow">
+                            <span class="margin-right margin-right--half-width"><span class="margin-right margin-right--half-width"/> <i class='fas fa-long-arrow-alt-right'></i></span>
+                        </div>
+                    </template>
+                    <div class="column is-narrow">
+                        <select class='select' v-model='selectedVersion'>
+                            <option v-for='(value, index) in versionNumbers' :key='index' v-bind:value='value'>
+                                {{value}}
+                            </option>
+                        </select>
                     </div>
-                    <div class='card-footer'>
-                        <button class="button is-info" @click="downloadThunderstoreMod()">Download with dependencies
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="updateAllModal" :class="['modal', {'is-active': isOpen}]" v-if="thunderstoreMod === null">
-            <div class="modal-background" @click="closeModal()"></div>
-            <div class="modal-content">
-                <div class='card'>
-                    <header class="card-header">
-                        <p class='card-header-title'>Update all installed mods</p>
-                    </header>
-                    <div class='card-content'>
-                        <p>All installed mods will be updated to their latest versions.</p>
-                        <p>Any missing dependencies will be installed.</p>
-                        <p>The following mods will be downloaded and installed:</p>
-                        <br/>
-                        <ul class="list">
-                            <li class="list-item" v-for='(key, index) in $store.getters["profile/modsWithUpdates"]'
-                                :key='`to-update-${index}-${key.getVersion().getFullName()}`'>
-                                {{key.getVersion().getName()}} will be updated to: {{key.getVersion().getVersionNumber().toString()}}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class='card-footer'>
-                        <button class="button is-info" @click="downloadLatest()">Update all</button>
+                    <div class="column is-narrow">
+                        <span class="tag is-dark" v-if='selectedVersion === null'>
+                            You need to select a version
+                        </span>
+                        <span class="tag is-success" v-else-if='recommendedVersion === selectedVersion'>
+                            {{selectedVersion}} is the recommended version
+                        </span>
+                        <span class="tag is-success" v-else-if='versionNumbers[0] === selectedVersion'>
+                            {{selectedVersion}} is the latest version
+                        </span>
+                        <span class="tag is-danger" v-else-if='versionNumbers[0] !== selectedVersion'>
+                            {{selectedVersion}} is an outdated version
+                        </span>
                     </div>
                 </div>
-            </div>
-            <button class="modal-close is-large" aria-label="close" @click="closeModal()"></button>
-        </div>
+            </template>
+            <template v-slot:footer>
+                <button class="button is-info" @click="downloadThunderstoreMod()">Download with dependencies</button>
+            </template>
+        </ModalCard>
+        <ModalCard :is-active="isOpen" :can-close="true" v-if="thunderstoreMod === null" @close-modal="closeModal()">
+            <template v-slot:header>
+                <h2 class='modal-title'>Update all installed mods</h2>
+            </template>
+            <template v-slot:body>
+                <p>All installed mods will be updated to their latest versions.</p>
+                <p>Any missing dependencies will be installed.</p>
+                <p>The following mods will be downloaded and installed:</p>
+                <br/>
+                <ul class="list">
+                    <li class="list-item" v-for='(mod, index) in $store.getters["profile/modsWithUpdates"]'
+                        :key='`to-update-${index}-${mod.getFullName()}`'>
+                        {{mod.getName()}} will be updated to: {{mod.getLatestVersion()}}
+                    </li>
+                </ul>
+            </template>
+            <template v-slot:footer>
+                <button class="button is-info" @click="downloadLatest()">Update all</button>
+            </template>
+        </ModalCard>
     </div>
 </template>
 
@@ -117,6 +105,9 @@ import { Progress } from '../all';
 import Game from '../../model/game/Game';
 import ConflictManagementProvider from '../../providers/generic/installing/ConflictManagementProvider';
 import { MOD_LOADER_VARIANTS } from '../../r2mm/installing/profile_installers/ModLoaderVariantRecord';
+import ModalCard from '../ModalCard.vue';
+import * as PackageDb from '../../r2mm/manager/PackageDexieStore';
+import { installModsToProfile } from '../../utils/ProfileUtils';
 
 interface DownloadProgress {
     assignId: number;
@@ -130,6 +121,7 @@ let assignId = 0;
 
     @Component({
         components: {
+            ModalCard,
             Progress
         }
     })
@@ -152,7 +144,16 @@ let assignId = 0;
             return this.$store.getters['profile/activeProfile'];
         }
 
-        public static async downloadSpecific(game: Game, profile: Profile, combo: ThunderstoreCombo, thunderstorePackages: ThunderstoreMod[]): Promise<void> {
+        get ignoreCache(): boolean {
+            const settings = this.$store.getters['settings'];
+            return settings.getContext().global.ignoreCache;
+        }
+
+        public static async downloadSpecific(
+            profile: Profile,
+            combo: ThunderstoreCombo,
+            ignoreCache: boolean
+        ): Promise<void> {
             return new Promise((resolve, reject) => {
                 const tsMod = combo.getMod();
                 const tsVersion = combo.getVersion();
@@ -166,7 +167,7 @@ let assignId = 0;
                 };
                 DownloadModModal.allVersions.push([currentAssignId, progressObject]);
                 setTimeout(() => {
-                    ThunderstoreDownloaderProvider.instance.download(game, profile, tsMod, tsVersion, thunderstorePackages, (progress: number, modName: string, status: number, err: R2Error | null) => {
+                    ThunderstoreDownloaderProvider.instance.download(profile.asImmutableProfile(), tsMod, tsVersion, ignoreCache, (progress: number, modName: string, status: number, err: R2Error | null) => {
                         const assignIndex = DownloadModModal.allVersions.findIndex(([number, val]) => number === currentAssignId);
                         if (status === StatusEnum.FAILURE) {
                             if (err !== null) {
@@ -197,7 +198,7 @@ let assignId = 0;
                                     );
                                 }
                             }
-                            const modList = await ProfileModList.getModList(profile);
+                            const modList = await ProfileModList.getModList(profile.asImmutableProfile());
                             if (!(modList instanceof R2Error)) {
                                 const err = await ConflictManagementProvider.instance.resolveConflicts(modList, profile);
                                 if (err instanceof R2Error) {
@@ -219,38 +220,34 @@ let assignId = 0;
             return this.$store.state.modals.isDownloadModModalOpen;
         }
 
-        get thunderstorePackages(): ThunderstoreMod[] {
-            return this.$store.state.tsMods.mods;
-        }
-
         @Watch('$store.state.modals.downloadModModalMod')
         async getModVersions() {
             this.currentVersion = null;
             if (this.thunderstoreMod !== null) {
-                this.selectedVersion = this.thunderstoreMod.getVersions()[0].getVersionNumber().toString();
-                this.versionNumbers = this.thunderstoreMod.getVersions()
-                    .map(value => value.getVersionNumber().toString());
+                this.selectedVersion = this.thunderstoreMod.getLatestVersion();
+                this.recommendedVersion = null;
+
+                this.versionNumbers = await PackageDb.getPackageVersionNumbers(
+                    this.activeGame.internalFolderName,
+                    this.thunderstoreMod.getFullName()
+                );
 
                 const foundRecommendedVersion = MOD_LOADER_VARIANTS[this.activeGame.internalFolderName]
                     .find(value => value.packageName === this.thunderstoreMod!.getFullName());
 
-                if (foundRecommendedVersion === undefined || foundRecommendedVersion.recommendedVersion === undefined) {
-                    this.recommendedVersion = null;
-                    this.selectedVersion = this.thunderstoreMod.getVersions()[0].getVersionNumber().toString();
-                } else {
+                if (foundRecommendedVersion && foundRecommendedVersion.recommendedVersion) {
                     this.recommendedVersion = foundRecommendedVersion.recommendedVersion.toString();
 
-                    // Bind to recommended version or fall back to latest
-                    const thunderstoreRecommendedVersion = this.thunderstoreMod.getVersions()
-                        .find(value => value.getVersionNumber().isEqualTo(foundRecommendedVersion.recommendedVersion!));
-                    if (thunderstoreRecommendedVersion !== undefined) {
-                        this.selectedVersion = thunderstoreRecommendedVersion.getVersionNumber().toString();
-                    } else {
-                        this.selectedVersion = this.thunderstoreMod.getVersions()[0].getVersionNumber().toString()
+                    // Auto-select recommended version if it's found.
+                    const recommendedVersion = this.versionNumbers.find(
+                        (ver) => ver === foundRecommendedVersion.recommendedVersion!.toString()
+                    );
+                    if (recommendedVersion) {
+                        this.selectedVersion = recommendedVersion;
                     }
                 }
 
-                const modListResult = await ProfileModList.getModList(this.profile);
+                const modListResult = await ProfileModList.getModList(this.profile.asImmutableProfile());
                 if (!(modListResult instanceof R2Error)) {
                     const manifestMod = modListResult.find((local: ManifestV2) => local.getName() === this.thunderstoreMod!.getFullName());
                     if (manifestMod !== undefined) {
@@ -264,26 +261,32 @@ let assignId = 0;
             this.$store.commit("closeDownloadModModal");
         }
 
-        downloadThunderstoreMod() {
+        async downloadThunderstoreMod() {
             const refSelectedThunderstoreMod: ThunderstoreMod | null = this.thunderstoreMod;
             const refSelectedVersion: string | null = this.selectedVersion;
             if (refSelectedThunderstoreMod === null || refSelectedVersion === null) {
                 // Shouldn't happen, but shouldn't throw an error.
                 return;
             }
-            const version = refSelectedThunderstoreMod.getVersions()
-                .find((modVersion: ThunderstoreVersion) => modVersion.getVersionNumber().toString() === refSelectedVersion);
-            if (version === undefined) {
+
+            let version: ThunderstoreVersion;
+
+            try {
+                version = await PackageDb.getVersionAsThunderstoreVersion(
+                    this.activeGame.internalFolderName,
+                    refSelectedThunderstoreMod.getFullName(),
+                    refSelectedVersion
+                );
+            } catch {
                 return;
             }
+
             this.downloadHandler(refSelectedThunderstoreMod, version);
         }
 
-        // TODO: rethink how this method and provider's downloadLatestOfAll()
-        // access the active game, local mod list and TS mod list.
         async downloadLatest() {
             this.closeModal();
-            const modsWithUpdates: ThunderstoreCombo[] = this.$store.getters['profile/modsWithUpdates'];
+            const modsWithUpdates: ThunderstoreCombo[] = await this.$store.dispatch('profile/getCombosWithUpdates');
             const currentAssignId = assignId++;
             const progressObject = {
                 progress: 0,
@@ -295,7 +298,7 @@ let assignId = 0;
             this.downloadObject = progressObject;
             DownloadModModal.allVersions.push([currentAssignId, this.downloadObject]);
             this.downloadingMod = true;
-            ThunderstoreDownloaderProvider.instance.downloadLatestOfAll(this.activeGame, modsWithUpdates, this.thunderstorePackages, (progress: number, modName: string, status: number, err: R2Error | null) => {
+            ThunderstoreDownloaderProvider.instance.downloadLatestOfAll(modsWithUpdates, this.ignoreCache, (progress: number, modName: string, status: number, err: R2Error | null) => {
                 const assignIndex = DownloadModModal.allVersions.findIndex(([number, val]) => number === currentAssignId);
                 if (status === StatusEnum.FAILURE) {
                     if (err !== null) {
@@ -337,7 +340,7 @@ let assignId = 0;
             DownloadModModal.allVersions.push([currentAssignId, this.downloadObject]);
             this.downloadingMod = true;
             setTimeout(() => {
-                ThunderstoreDownloaderProvider.instance.download(this.activeGame, this.profile, tsMod, tsVersion, this.thunderstorePackages, (progress: number, modName: string, status: number, err: R2Error | null) => {
+                ThunderstoreDownloaderProvider.instance.download(this.profile.asImmutableProfile(), tsMod, tsVersion, this.ignoreCache, (progress: number, modName: string, status: number, err: R2Error | null) => {
                     const assignIndex = DownloadModModal.allVersions.findIndex(([number, val]) => number === currentAssignId);
                     if (status === StatusEnum.FAILURE) {
                         if (err !== null) {
@@ -368,24 +371,20 @@ let assignId = 0;
 
         async downloadCompletedCallback(downloadedMods: ThunderstoreCombo[]) {
             ProfileModList.requestLock(async () => {
-                for (const combo of downloadedMods) {
-                    try {
-                        await DownloadModModal.installModAfterDownload(this.profile, combo.getMod(), combo.getVersion());
-                    } catch (e) {
-                        this.downloadingMod = false;
-                        const err = R2Error.fromThrownValue(e, `Failed to install mod [${combo.getMod().getFullName()}]`);
-                        this.$store.commit('error/handleError', err);
-                        return;
-                    }
-                }
-                this.downloadingMod = false;
-                const modList = await ProfileModList.getModList(this.profile);
-                if (!(modList instanceof R2Error)) {
+                const profile = this.profile.asImmutableProfile();
+
+                try {
+                    const modList = await installModsToProfile(downloadedMods, profile);
                     await this.$store.dispatch('profile/updateModList', modList);
+
                     const err = await ConflictManagementProvider.instance.resolveConflicts(modList, this.profile);
                     if (err instanceof R2Error) {
-                        this.$store.commit('error/handleError', err);
+                        throw err;
                     }
+                } catch (e) {
+                    this.$store.commit('error/handleError', R2Error.fromThrownValue(e));
+                } finally {
+                    this.downloadingMod = false;
                 }
             });
         }
@@ -393,7 +392,7 @@ let assignId = 0;
         static async installModAfterDownload(profile: Profile, mod: ThunderstoreMod, version: ThunderstoreVersion): Promise<R2Error | void> {
             return new Promise(async (resolve, reject) => {
                 const manifestMod: ManifestV2 = new ManifestV2().fromThunderstoreMod(mod, version);
-                const profileModList = await ProfileModList.getModList(profile);
+                const profileModList = await ProfileModList.getModList(profile.asImmutableProfile());
                 if (profileModList instanceof R2Error) {
                     return reject(profileModList);
                 }
@@ -406,14 +405,14 @@ let assignId = 0;
                     const resolvedAuthorModNameString = `${manifestMod.getAuthorName()}-${manifestMod.getDisplayName()}`;
                     const olderInstallOfMod = profileModList.find(value => `${value.getAuthorName()}-${value.getDisplayName()}` === resolvedAuthorModNameString);
                     if (manifestMod.getName().toLowerCase() !== 'bbepis-bepinexpack') {
-                        const result = await ProfileInstallerProvider.instance.uninstallMod(manifestMod, profile);
+                        const result = await ProfileInstallerProvider.instance.uninstallMod(manifestMod, profile.asImmutableProfile());
                         if (result instanceof R2Error) {
                             return reject(result);
                         }
                     }
-                    const installError: R2Error | null = await ProfileInstallerProvider.instance.installMod(manifestMod, profile);
+                    const installError: R2Error | null = await ProfileInstallerProvider.instance.installMod(manifestMod, profile.asImmutableProfile());
                     if (!(installError instanceof R2Error)) {
-                        const newModList: ManifestV2[] | R2Error = await ProfileModList.addMod(manifestMod, profile);
+                        const newModList: ManifestV2[] | R2Error = await ProfileModList.addMod(manifestMod, profile.asImmutableProfile());
                         if (newModList instanceof R2Error) {
                             return reject(newModList);
                         }
@@ -422,10 +421,10 @@ let assignId = 0;
                     }
                     if (olderInstallOfMod !== undefined) {
                         if (!olderInstallOfMod.isEnabled()) {
-                            await ProfileModList.updateMod(manifestMod, profile, async mod => {
+                            await ProfileModList.updateMod(manifestMod, profile.asImmutableProfile(), async mod => {
                                 mod.disable();
                             });
-                            await ProfileInstallerProvider.instance.disableMod(manifestMod, profile);
+                            await ProfileInstallerProvider.instance.disableMod(manifestMod, profile.asImmutableProfile());
                         }
                     }
                 }
